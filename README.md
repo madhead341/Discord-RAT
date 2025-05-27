@@ -202,4 +202,4 @@ command_pref = '!'             # Command prefix (default: !)
 
 ## DISCLAIMER
 
-This tool is intended for legitimate system administration purposes only. Users are responsible for ensuring compliance with all applicable laws and regulations. Only use this software on systems you own or have explicit permission to access. The developers are not responsible for any misuse of this software. Please check the (LICENSE)[LICENSE] file for more information.
+This tool is intended for legitimate system administration purposes only. Users are responsible for ensuring compliance with all applicable laws and regulations. Only use this software on systems you own or have explicit permission to access. The developers are not responsible for any misuse of this software. MIT License - see the [LICENSE](LICENSE) file for details.
