@@ -1,0 +1,10 @@
+discord.py
+keyboard
+mss
+psutil
+sounddevice
+numpy
+requests
+pyperclip
+opencv-python
+pillow
