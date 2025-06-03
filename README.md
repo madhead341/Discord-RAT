@@ -3,7 +3,7 @@
 A Discord-controlled remote administration tool to manage and control computers remotely through Discord bot commands.
 Please leave a star ⭐!
 
-> ⚠️ **Warning**  
+> **Warning**  
 > This tool is for educational and authorized use only. Misuse may be illegal. I am not responsible for anything you do with this program.
 
 ## Features
