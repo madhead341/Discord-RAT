@@ -3,8 +3,8 @@
 A Discord-controlled remote administration tool to manage and control computers remotely through Discord bot commands.
 Please leave a star ⭐!
 
-
-``uac shit isn't working rn gotta fix``
+> ⚠️ **Warning**  
+> This tool is for educational and authorized use only. Misuse may be illegal. I am not responsible for anything you do with this program.
 
 ## Features
 
@@ -203,6 +203,10 @@ command_pref = '!'             # Command prefix (default: !)
 !restart
 !cmd dir
 ```
+
+## Contributing
+
+Contributions are welcome. Whether it's a bug fix, feature, etc.., feel free to open an issue or submit a pull request. Please follow the code style and include clear documentation for any changes, for new commands, use 1 comment above the function to explain wwhat it is.
 
 ## DISCLAIMER
 
