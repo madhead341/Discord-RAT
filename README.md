@@ -2,7 +2,7 @@
 
 A Discord-controlled remote administration tool to manage and control computers remotely through Discord bot commands.
 
-uac shit isn't working rn gotta fix
+``uac shit isn't working rn gotta fix``
 
 ## Features
 
