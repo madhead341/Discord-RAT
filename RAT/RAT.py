@@ -2149,14 +2149,14 @@ async def exit(ctx):
     sys.exit(0)
 
 # UAC command 
-@bot.command() # please help me out with this one, i removed the old version, it was so ass
+@bot.command() # i removed the old version, it was so ass
 async def uac(ctx):
     if ctx.channel != ctrl_channel:
         return
     
     await ctx.send("In development.")
 
-
+# fully disable UAC (also not really working)
 @bot.command()
 async def disableuac(ctx):
     if ctx.channel != ctrl_channel:
