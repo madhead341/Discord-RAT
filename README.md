@@ -1,7 +1,7 @@
 # Discord RAT
 
 A Discord-controlled remote administration tool to manage and control computers remotely through Discord bot commands.
-Please leave a star ![image](https://github.com/user-attachments/assets/9ae313f0-6232-4127-952f-4583d8d0b008)!
+Please leave a star ⭐!
 
 
 ``uac shit isn't working rn gotta fix``
