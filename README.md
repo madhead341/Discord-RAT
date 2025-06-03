@@ -5,6 +5,7 @@ Please leave a star ⭐!
 
 > **Warning**  
 > This tool is for educational and authorized use only. Misuse may be illegal. I am not responsible for anything you do with this program.
+``UAC and screenshare command not working right now, will be fixed soon``
 
 ## Features
 
